@@ -44,17 +44,19 @@ for zone in zonelist:
         effqs = csvsum(qpscsv['csv'])
         sum_requests += effqs
         print("Zone \"{0}\" has {1} records and gets about {2}k queries per month".format(zone.fqdn, len(allrecs), effqs/1000))
-        zones[zone.fqdn]['requests'] = effqs
-        zones[zone.fqdn]['records'] = len(allrecs)
+        zones[zone.fqdn] = dict({
+                                'requests': effqs,
+                                'records': len(allrecs)
+                                })
     except DynectGetError:
         print("Zone \"{0}\" does not want to list records (secondary zone?)".format(zone.fqdn))
 
 
 print("{0} records in {1} zones, approximately {2}k queries per month".format(sum_records, len(zonelist), sum_requests/1000))
 
-with open('dyn-fetch.csv', 'w', newline='') as outcsv:
+with open('dynfetch-out.csv', 'w', newline='') as outcsv:
     csvw = csv.writer(outcsv, dialect='excel')
     csvw.writerow(['Zone FQDN', 'Number of Records', 'Number of Requests(Month)'])
-    for zone in zones.items():
-        csvw.writerow([zone, zones[zone]['records'], zones[zone]['requests']])
+    for fqdn in zones.keys():
+        csvw.writerow([fqdn, zones[fqdn]['records'], zones[fqdn]['requests']])
     csvw.writerow(['TOTALS', sum_records, sum_requests])
